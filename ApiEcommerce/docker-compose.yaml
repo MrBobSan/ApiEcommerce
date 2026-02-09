@@ -10,6 +10,19 @@ services:
       MSSQL_PID: "Developer"
     volumes:
       - sqlserverdata:/var/opt/mssql
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: apiececommerce
+    depends_on:
+      - sql
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_URLS: "http://+:8080"
+      ASPNETCORE_ENVIRONMENT: "Development"
+      ConnectionStrings__ConexionSql: "Server=sql;Database=ApiEcommerceNET8;User ID=SA;Password=MyStrongPass123;TrustServerCertificate=true;MultipleActiveResultSets=true"
 volumes:
   sqlserverdata:
 # Comandos útiles:
