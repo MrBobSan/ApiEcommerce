@@ -35,9 +35,9 @@ public class CategoryRepository : ICategoryRepository
         return Save();
     }
 
-    public Category GetCategory(int id)
+    public Category? GetCategory(int id)
     {
-        return _db.Categories.FirstOrDefault(c => c.Id == id) ?? throw new InvalidOperationException($"Category with id {id} not found.");
+        return _db.Categories.FirstOrDefault(c => c.Id == id);
     }
 
     public ICollection<Category> GetCategories()
