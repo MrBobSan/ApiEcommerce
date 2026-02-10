@@ -1,0 +1,35 @@
+using ApiEcommerce.Repository.IRepository;
+using ApiEcommerce.Models;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using ApiEcommerce.Models.Dtos;
+using AutoMapper;
+
+namespace ApiEcommerce.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class ProductsController : ControllerBase
+    {
+        private readonly IProductRepository _productRepository;
+        private readonly IMapper _mapper;
+        public ProductsController(IProductRepository productRepository, IMapper mapper)
+        {
+            _productRepository = productRepository;
+            _mapper = mapper;
+        }
+        [HttpGet]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public IActionResult GetProducts()
+        {
+            var products = _productRepository.GetProducts();
+            var productsDto = new List<ProductDto>();
+            foreach(var product in products)
+            {
+                productsDto.Add(_mapper.Map<ProductDto>(product));
+            }
+            return Ok(productsDto);
+        }
+    }
+}
