@@ -68,10 +68,6 @@ namespace ApiEcommerce.Controllers
                 ModelState.AddModelError("Custom Error", $"Algo salio mal al guardar el registro {product.Name}");
                 return StatusCode(500, ModelState);
             }
-            {
-                ModelState.AddModelError("Custom Error", $"Algo salio mal al guardar el registro {product.Name}");
-                return StatusCode(500, ModelState);
-            }
             return CreatedAtRoute("GetProduct", new { ProductId = product.ProductId }, product);
         }
         [HttpPatch("{ProductId:int}", Name = "UpdateProduct")]
