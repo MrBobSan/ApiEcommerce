@@ -11,6 +11,8 @@ obj/
 .vs/
 .vscode/
 *.code-workspace
+.editorconfig
+.github/
 
 # Archivos de usuario
 *.user
