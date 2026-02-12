@@ -12,10 +12,12 @@ namespace ApiEcommerce.Controllers
     public class ProductsController : ControllerBase
     {
         private readonly IProductRepository _productRepository;
+        private readonly ICategoryRepository _categoryRepository;
         private readonly IMapper _mapper;
-        public ProductsController(IProductRepository productRepository, IMapper mapper)
+        public ProductsController(IProductRepository productRepository, ICategoryRepository categoryRepository, IMapper mapper)
         {
             _productRepository = productRepository;
+            _categoryRepository = categoryRepository;
             _mapper = mapper;
         }
         [HttpGet]
@@ -31,7 +33,7 @@ namespace ApiEcommerce.Controllers
             }
             return Ok(productsDto);
         }
-        [HttpGet("{ProductId:int}", Name = "GetProduct")]
+        [HttpGet("{productId:int}", Name = "GetProduct")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -62,15 +64,22 @@ namespace ApiEcommerce.Controllers
                 ModelState.AddModelError("Custom Error","El producto ya existe");
                 return BadRequest(ModelState);
             }
+            if (!_categoryRepository.CategoryExists(createProductDto.CategoryId))
+            {
+                ModelState.AddModelError("Custom Error",$"La categoría {createProductDto.CategoryId} no existe");
+                return BadRequest(ModelState);
+            }
             var product = _mapper.Map<Product>(createProductDto);
             if (!_productRepository.CreateProduct(product))
             {
                 ModelState.AddModelError("Custom Error", $"Algo salio mal al guardar el registro {product.Name}");
                 return StatusCode(500, ModelState);
             }
-            return CreatedAtRoute("GetProduct", new { ProductId = product.ProductId }, product);
+            var createdProduct = _productRepository.GetProduct(product.ProductId);
+            var productDto = _mapper.Map<ProductDto>(createdProduct);
+            return CreatedAtRoute("GetProduct", new { productId = product.ProductId }, productDto);
         }
-        [HttpPatch("{ProductId:int}", Name = "UpdateProduct")]
+        [HttpPatch("{productId:int}", Name = "UpdateProduct")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -101,7 +110,7 @@ namespace ApiEcommerce.Controllers
             return NoContent();
         }
 
-        [HttpDelete("{ProductId:int}", Name = "DeleteProduct")]
+        [HttpDelete("{productId:int}", Name = "DeleteProduct")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -125,5 +134,5 @@ namespace ApiEcommerce.Controllers
             }
             return NoContent();
         }
-    }
+    } 
 }
