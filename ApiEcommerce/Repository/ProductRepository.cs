@@ -81,15 +81,18 @@ public class ProductRepository : IProductRepository
         {
             return new List<Product>();
         }
-        return _db.Products.Where(p => p.CategoryId == categoryId).OrderBy(p => p.Name).ToList();
+        return _db.Products.Include(p => p.Category).Where(p => p.CategoryId == categoryId).OrderBy(p => p.Name).ToList();
     }
 
     public ICollection<Product> SearchProducts(string searchTerm)
     {
         IQueryable<Product> query = _db.Products;
+        var searchTermLower = searchTerm.ToLower().Trim();
         if (!string.IsNullOrEmpty(searchTerm))
         {
-            query = query.Where(p => p.Name.ToLower().Trim() == searchTerm.ToLower().Trim());
+            query = query.Include(p => p.Category).Where(
+                p => p.Name.ToLower().Trim().Contains(searchTermLower) ||
+                p.Description.ToLower().Trim().Contains(searchTermLower));
         }
         return query.OrderBy(p => p.Name).ToList();
     }
@@ -106,6 +109,21 @@ public class ProductRepository : IProductRepository
             return false;
         }
         product.Stock -= quantity;
+        _db.Products.Update(product);
+        return Save();
+    }
+    public bool AddStock(string productName, int quantity)
+    {
+        if (string.IsNullOrEmpty(productName) || quantity <= 0)
+        {
+            return false;
+        }
+        var product = _db.Products.FirstOrDefault(p => p.Name.ToLower().Trim() == productName.ToLower().Trim());
+        if (product == null)
+        {
+            return false;
+        }
+        product.Stock += quantity;
         _db.Products.Update(product);
         return Save();
     }
