@@ -1,4 +1,46 @@
+# Compilación y objetos intermedios
+bin/
+obj/
+*.exe
+*.dll
+*.pdb
+*.so
+*.dylib
+
+# Directorios de Visual Studio
+.vs/
+.vscode/
+*.code-workspace
+
+# Archivos de usuario
+*.user
+*.userprefs
+*.suo
+.DS_Store
+
+# Configuración de desarrollo
+appsettings.Development.json
+.env
+.env.local
+.env.*.local
+
+# Logs y cache
+*.log
 .cache
-ApiEcommerce\bin\Debug\net10.0
-ApiEcommerce\obj\Debug\net10.0
-ApiEcommerce\.vs
+logs/
+
+# Archivos temporales
+*.tmp
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Directorios generados por herramientas
+.dotnet/
+node_modules/
+dist/
+
+# Compilación específica del proyecto
+ApiEcommerce/bin/
+ApiEcommerce/obj/
