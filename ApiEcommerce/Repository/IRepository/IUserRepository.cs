@@ -9,6 +9,6 @@ public interface IUserRepository
     ICollection<User> GetUsers();
     User? GetUser(int id);
     bool IsUniqueUser(string username);
-    Task<UserLoginResponseDto> Login(UserLoginDto user);
-    Task<User> Register(CreateUserDto user);
+    Task<UserLoginResponseDto> Login(UserLoginDto userLoginDto);
+    Task<User> Register(CreateUserDto createUserDto);
 }
