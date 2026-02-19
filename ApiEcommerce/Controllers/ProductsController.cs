@@ -42,12 +42,12 @@ namespace ApiEcommerce.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public IActionResult GetProduct(int ProductId)
+        public IActionResult GetProduct(int productId)
         {
-            var product = _productRepository.GetProduct(ProductId);
+            var product = _productRepository.GetProduct(productId);
             if (product == null)            
             {
-                return NotFound($"Product with id {ProductId} not found.");
+                return NotFound($"Product with id {productId} not found.");
             }
             var productDto = _mapper.Map<ProductDto>(product);
             return Ok(productDto);
