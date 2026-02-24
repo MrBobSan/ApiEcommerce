@@ -1,6 +1,10 @@
+using System.Text;
+using ApiEcommerce.Constants;
 using ApiEcommerce.Repository;
 using ApiEcommerce.Repository.IRepository;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,10 +15,75 @@ builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddAutoMapper(cfg => cfg.AddMaps(typeof(Program).Assembly));
+
+var secretKey = builder.Configuration.GetValue<string>("ApiSettings:SecretKey");
+if(string.IsNullOrEmpty(secretKey))
+{
+    throw new InvalidOperationException("Secret key not found in configuration.");
+}
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(options =>
+{
+    options.RequireHttpsMetadata = false;
+    options.SaveToken = true;
+    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
+        ValidateIssuer = false,
+        ValidateAudience = false
+    };
+});
+
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(
+    options =>
+    {
+        options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+        {
+        Description = "Nuestra API utiliza la Autenticación JWT usando el esquema Bearer. \n\r\n\r" +
+                        "Ingresa la palabra a continuación el token generado en login.\n\r\n\r" +
+                        "Ejemplo: \"12345abcdef\"",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer"
+        });
+        // options.AddSecurityRequirement(new OpenApiSecurityRequirement()
+        // {
+        //     {
+        //         new OpenApiSecurityScheme
+        //         {
+        //             Reference = new OpenApiReference
+        //             {
+        //                 Type = ReferenceType.SecurityScheme,
+        //                 Id = "Bearer"
+        //             },
+        //             Scheme = "oauth2",
+        //             Name = "Bearer",
+        //             In = ParameterLocation.Header
+        //         },
+        //         new List<string>()
+        //     }
+        // });
+    }
+);
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(PolicyNames.AllowSpecificOrigin, builder =>
+    {
+        builder.WithOrigins("*")
+               .AllowAnyMethod()
+               .AllowAnyHeader();
+    });
+});
 
 var app = builder.Build();
 
@@ -27,13 +96,17 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseCors(PolicyNames.AllowSpecificOrigin);
+
+app.UseAuthentication();
+
 app.UseAuthorization();
 
 app.MapControllers();
 
 app.Run();
 
-var summaries = new[]
+/* var summaries = new[]
 {
     "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
 };
@@ -57,4 +130,4 @@ app.Run();
 record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {
     public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
+} */

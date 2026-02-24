@@ -8,9 +8,11 @@ using Microsoft.VisualBasic;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ApiEcommerce.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class ProductsController : ControllerBase
@@ -24,6 +26,7 @@ namespace ApiEcommerce.Controllers
             _categoryRepository = categoryRepository;
             _mapper = mapper;
         }
+        [AllowAnonymous]
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -37,6 +40,7 @@ namespace ApiEcommerce.Controllers
             }
             return Ok(productsDto);
         }
+        [AllowAnonymous]
         [HttpGet("{productId:int}", Name = "GetProduct")]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

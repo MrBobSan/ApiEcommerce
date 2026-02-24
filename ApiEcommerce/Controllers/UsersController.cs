@@ -6,9 +6,11 @@ using Microsoft.AspNetCore.Mvc;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.AspNetCore.HttpLogging;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ApiEcommerce.Controllers
 {
+    [Authorize(Roles = "Admin")]
     [Route("api/[controller]")]
     [ApiController]
     public class UsersController : ControllerBase
@@ -48,6 +50,7 @@ namespace ApiEcommerce.Controllers
 
 
         [HttpPost(Name = "RegisterUser")]
+        [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -77,6 +80,7 @@ namespace ApiEcommerce.Controllers
         }
 
         [HttpPost("Login", Name = "LoginUser")]
+        [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
