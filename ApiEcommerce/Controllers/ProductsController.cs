@@ -9,11 +9,13 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
+using Asp.Versioning;
 
 namespace ApiEcommerce.Controllers
 {
     [Authorize]
-    [Route("api/[controller]")]
+    [Route("api/v{version:apiVersion}/[controller]")]
+    [ApiVersionNeutral]
     [ApiController]
     public class ProductsController : ControllerBase
     {

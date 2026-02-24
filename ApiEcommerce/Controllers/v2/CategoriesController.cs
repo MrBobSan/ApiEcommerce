@@ -6,10 +6,12 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ApiEcommerce.Constants;
 using Microsoft.AspNetCore.Authorization;
+using Asp.Versioning;
 
-namespace ApiEcommerce.Controllers
+namespace ApiEcommerce.Controllers.V2
 {
-    [Route("api/[controller]")]
+    [Route("api/v{version:apiVersion}/[controller]")]
+    [ApiVersion("2.0")]
     [ApiController]
     [Authorize]
     // [EnableCors(PolicyNames.AllowSpecificOrigin)]
@@ -26,10 +28,11 @@ namespace ApiEcommerce.Controllers
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [MapToApiVersion("2.0")]
         //[EnableCors(PolicyNames.AllowSpecificOrigin)]
-        public IActionResult GetCategories()
+        public IActionResult GetCategoriesOrderById()
         {
-            var categories = _categoryRepository.GetCategories();
+            var categories = _categoryRepository.GetCategories().OrderBy(c => c.Id);
             var categoriesDto = new List<CategoryDto>();
             foreach(var category in categories)
             {
@@ -39,13 +42,18 @@ namespace ApiEcommerce.Controllers
         }
         [AllowAnonymous]
         [HttpGet("{id:int}", Name = "GetCategory")]
+        // [ResponseCache(Duration = 10)]
+        [ResponseCache(CacheProfileName = CacheProfiles.Default10)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult GetCategory(int id)
         {
+            System.Console.WriteLine($"Categoria con el ID {id} solicitada a las {DateTime.Now}.");
             var category = _categoryRepository.GetCategory(id);
+            System.Console.WriteLine($"Respuesta con el ID {id} obtenida a las {DateTime.Now}.");
+
             if (category == null)            
             {
                 return NotFound($"Category with id {id} not found.");
