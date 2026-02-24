@@ -2,9 +2,11 @@ using System.Text;
 using ApiEcommerce.Constants;
 using ApiEcommerce.Repository;
 using ApiEcommerce.Repository.IRepository;
+using Asp.Versioning;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,9 +20,9 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddAutoMapper(cfg => cfg.AddMaps(typeof(Program).Assembly));
 builder.Services.AddResponseCaching(options =>
 {
-    options.MaximumBodySize = 1024 * 1024; // 1 MB  
+    options.MaximumBodySize = 1024 * 1024; // 1 MB
     options.UseCaseSensitivePaths = true;
-}); 
+});
 
 var secretKey = builder.Configuration.GetValue<string>("ApiSettings:SecretKey");
 if(string.IsNullOrEmpty(secretKey))
@@ -45,7 +47,7 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddControllers(option => 
+builder.Services.AddControllers(option =>
 {
     option.CacheProfiles.Add(CacheProfiles.Default10, CacheProfiles.Profile10);
     option.CacheProfiles.Add(CacheProfiles.Default20, CacheProfiles.Profile20);
@@ -64,6 +66,40 @@ builder.Services.AddSwaggerGen(
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.Http,
         Scheme = "Bearer"
+        });
+        options.SwaggerDoc("v1", new OpenApiInfo
+        {
+            Version = "v1",
+            Title = "API Ecommerce",
+            Description = "API para gestionar productos y categorías en un ecommerce.",
+            TermsOfService = new Uri("https://example.com/terms"),
+            Contact = new OpenApiContact
+            {
+                Name = "DevTalles",
+                Url = new Uri("https://devTalles.com")
+            },
+            License = new OpenApiLicense
+            {
+                Name = "License",
+                Url = new Uri("https://example.com/license")
+            }
+        });
+                options.SwaggerDoc("v2", new OpenApiInfo
+        {
+            Version = "v2",
+            Title = "API Ecommerce",
+            Description = "API para gestionar productos y categorías en un ecommerce. V2 con mejoras y nuevas funcionalidades.",
+            TermsOfService = new Uri("https://example.com/terms"),
+            Contact = new OpenApiContact
+            {
+                Name = "DevTalles",
+                Url = new Uri("https://devTalles.com")
+            },
+            License = new OpenApiLicense
+            {
+                Name = "License",
+                Url = new Uri("https://example.com/license")
+            }
         });
         // options.AddSecurityRequirement(new OpenApiSecurityRequirement()
         // {
@@ -85,6 +121,20 @@ builder.Services.AddSwaggerGen(
     }
 );
 
+var apiVersioningBuilder = builder.Services.AddApiVersioning(options =>
+{
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.DefaultApiVersion = new ApiVersion(1, 0);
+    options.ReportApiVersions = true;
+    // options.ApiVersionReader = ApiVersionReader.Combine(new QueryStringApiVersionReader("api-version"));
+});
+
+apiVersioningBuilder.AddApiExplorer(options =>
+{
+    options.GroupNameFormat = "'v'VVV"; // v1, v2, v3
+    options.SubstituteApiVersionInUrl = true; // api/v(version)/products
+});
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(PolicyNames.AllowSpecificOrigin, builder =>
@@ -101,7 +151,11 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "API Ecommerce v1");
+        options.SwaggerEndpoint("/swagger/v2/swagger.json", "API Ecommerce v2");
+    });
 }
 
 app.UseHttpsRedirection();
@@ -110,19 +164,6 @@ app.UseCors(PolicyNames.AllowSpecificOrigin);
 
 app.UseResponseCaching();
 
-/* app.Use(async (context, next) =>
-{
-    context.Response.GetTypedHeaders().CacheControl =
-        new Microsoft.Net.Http.Headers.CacheControlHeaderValue()
-        {
-            Public = true,
-            MaxAge = TimeSpan.FromSeconds(20)
-        };
-    context.Response.Headers[Microsoft.Net.Http.Headers.HeaderNames.Vary] =
-        new string[] { "Accept-Encoding" };
-    await next();
-}); */
-
 app.UseAuthentication();
 
 app.UseAuthorization();
@@ -130,29 +171,3 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-
-/* var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
-
-app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-} */
