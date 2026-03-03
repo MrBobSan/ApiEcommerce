@@ -4,6 +4,7 @@ using ApiEcommerce.Repository;
 using ApiEcommerce.Repository.IRepository;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -18,6 +19,9 @@ builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddAutoMapper(cfg => cfg.AddMaps(typeof(Program).Assembly));
+builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders();
 builder.Services.AddResponseCaching(options =>
 {
     options.MaximumBodySize = 1024 * 1024; // 1 MB
@@ -101,23 +105,6 @@ builder.Services.AddSwaggerGen(
                 Url = new Uri("https://example.com/license")
             }
         });
-        // options.AddSecurityRequirement(new OpenApiSecurityRequirement()
-        // {
-        //     {
-        //         new OpenApiSecurityScheme
-        //         {
-        //             Reference = new OpenApiReference
-        //             {
-        //                 Type = ReferenceType.SecurityScheme,
-        //                 Id = "Bearer"
-        //             },
-        //             Scheme = "oauth2",
-        //             Name = "Bearer",
-        //             In = ParameterLocation.Header
-        //         },
-        //         new List<string>()
-        //     }
-        // });
     }
 );
 
